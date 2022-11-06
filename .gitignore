@@ -127,3 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Javascript
+*/node_modules
+.DS_Store
+/artlab-ui/build
+artlab-ui/.svelte-kit
+artlab-ui/package
+.env
+.env.*
+!.env.example
+
