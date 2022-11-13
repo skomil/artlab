@@ -1,8 +1,7 @@
 export type ILayerManager = {
-    addImage(image:HTMLImageElement): void;
+    addImage(image:HTMLImageElement, currentHistory: boolean): void;
     getRenderRect(): IRenderRect;
     copySelectionToImage(): string;
-    addToHistory(): void;
     width: number;
     height: number;
 }

@@ -22,6 +22,7 @@
     let copyCanvas: HTMLCanvasElement;
     let imageHistory: ImageData[];
     let currentlyViewingHistory = 0;
+    let imageHistoryDisplay = 0;
     imageHistory = [];
     onMount(()=>{
         drawBackground();
@@ -33,11 +34,12 @@
     $: height, refreshView();
 
     function addToHistory(): void {
-        imageHistory.splice(currentlyViewingHistory+ imageHistory.length);
+        imageHistory.splice(currentlyViewingHistory + imageHistory.length);
         currentlyViewingHistory = 0;
         if(renderLayer != null) {
             imageHistory.push(renderLayer.getContext().getImageData(0, 0, width, height));
         }
+        imageHistoryDisplay = imageHistory.length;
     }
     export const copySelectionToImage = (): string => {
         copyCanvas.width = renderBoundsWidth;
@@ -47,7 +49,7 @@
         copyCanvas.getContext("2d")?.globalCompositeOperation
         return copyCanvas.toDataURL();
     };
-    export const addImage = (image:HTMLImageElement, updateHistory: boolean) => {
+    export const addImage = (image:HTMLImageElement, currentHistory: boolean) => {
         renderLayer.getContext().drawImage(image, renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
         addToHistory();
     };
@@ -133,9 +135,9 @@
         
     }
     function tryBackHistory() {
-        if (imageHistory.length + currentlyViewingHistory > 0) {
+        if (imageHistory.length + currentlyViewingHistory > 1) {
             currentlyViewingHistory --;
-            renderLayer.getContext().putImageData(imageHistory[imageHistory.length + currentlyViewingHistory], 0, 0);
+            renderLayer.getContext().putImageData(imageHistory[imageHistory.length + currentlyViewingHistory - 1], 0, 0);
         }
     }
     function tryForwardHistory() {
@@ -159,5 +161,5 @@
 </div>
 <div>
     imageWidth: {renderBoundsWidth} imageHeight: {renderBoundsHeight}
-    <input type="button" value="<-hist" on:click={tryBackHistory}/> {imageHistory.length} images in history <input type="button" value="hist->" on:click={tryForwardHistory}/>
+    <input type="button" value="<-hist" on:click={tryBackHistory}/> viewing {imageHistoryDisplay + currentlyViewingHistory} of {imageHistoryDisplay} images in history <input type="button" value="hist->" on:click={tryForwardHistory}/>
 </div>

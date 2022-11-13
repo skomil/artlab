@@ -10,7 +10,7 @@
     let canvasHeight: number = 512;
     
     let sdconfig = {
-        url: 'http://localhost:7860/'
+        url: 'http://192.168.1.31:7861/'
     };
     let resultImages: HTMLImageElement[] = [];
     let resultSelection: number = 0;
@@ -56,19 +56,19 @@
         overlay.hidden = true;
         console.log(txt2img);
         await populateImageData(txt2img);
-        layers.addImage(resultImages[resultSelection]);
+        layers.addImage(resultImages[resultSelection], false);
         console.log("outpaint");
     }
     function incrementCurrentBatch() {
         if (resultSelection + 1 < resultImages.length) {
             resultSelection++;
-            layers.addImage(resultImages[resultSelection]);
+            layers.addImage(resultImages[resultSelection], true);
         }
     }
     function decrementCurrentBatch() {
         if (resultSelection > 0) {
             resultSelection--;
-            layers.addImage(resultImages[resultSelection]);
+            layers.addImage(resultImages[resultSelection], true);
         }
     }
     async function loadImage() {
@@ -112,7 +112,10 @@
     async function populateImageData(txt2img: any) {
         let deferredImages = txt2img.images.map(async img => {
             const image = new Image();
-            await new Promise(r => image.onload=r, image.src=img);
+            await new Promise(r => {
+                image.onload=r;
+                image.src="data:image/png;base64," + img;
+            });
             return image;
         });
         await Promise.all(deferredImages).then(v => resultImages = v);
