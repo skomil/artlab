@@ -44,9 +44,15 @@
     export const copySelectionToImage = (): string => {
         copyCanvas.width = renderBoundsWidth;
         copyCanvas.height = renderBoundsHeight;
-        const img = renderLayer.getContext().getImageData(renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
+        const img = renderLayer.createImageWithoutMask(renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
         copyCanvas.getContext("2d").putImageData(img,0,0);
-        copyCanvas.getContext("2d")?.globalCompositeOperation
+        return copyCanvas.toDataURL();
+    };
+    export const copyMaskToImage = (): string => {
+        copyCanvas.width = renderBoundsWidth;
+        copyCanvas.height = renderBoundsHeight;
+        const img = renderLayer.createMask(renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
+        copyCanvas.getContext("2d").putImageData(img,0,0);
         return copyCanvas.toDataURL();
     };
     export const addImage = (image:HTMLImageElement, currentHistory: boolean) => {

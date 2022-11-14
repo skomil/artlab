@@ -30,18 +30,19 @@
             multiplier = 4;
         }
         overlay.hidden = false;
-        console.log('%c ', 'font-size:400px; background:url('+ layers.copySelectionToImage +') no-repeat;');
+        //console.log('%c ', 'font-size:400px; background:url('+ layers.copySelectionToImage +') no-repeat;');
         const res = await fetch(sdconfig.url + "sdapi/v1/img2img", {
 			method: 'POST',
 			body: JSON.stringify({
                 prompt,
                 resize_mode: 5,
                 init_images: [layers.copySelectionToImage()],
+                mask: layers.copyMaskToImage(),
                 batch_size: batchSize,
                 cfg_scale: 7,
                 sampler_index: "LMS",
                 steps: 50,
-                denoising_strength: 1,
+                denoising_strength: .7,
                 mask_blur: 0,
                 width: rectSize.width * multiplier,
                 height: rectSize.height * multiplier,
