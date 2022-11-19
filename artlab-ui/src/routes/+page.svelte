@@ -6,8 +6,9 @@
     let prompt: string = '';
     let batchSize: number = 1;
     let layers: ILayerManager;
-    let canvasWidth: number = 512;
+    let canvasWidth: number = 1024;
     let canvasHeight: number = 512;
+    let scale: number = 1;
     
     let sdconfig = {
         url: 'http://192.168.1.31:7861/'
@@ -21,14 +22,7 @@
         
     })
     async function copyImage() {
-        let multiplier = 1;
-        const rectSize:IRenderRect = layers.getRenderRect();
-        if(rectSize.height < 384 || rectSize.height < 384) {
-            multiplier = 2;
-        }
-        if(rectSize.height < 192 || rectSize.height < 192) {
-            multiplier = 4;
-        }
+        
         overlay.hidden = false;
         //console.log('%c ', 'font-size:400px; background:url('+ layers.copySelectionToImage +') no-repeat;');
         const res = await fetch(sdconfig.url + "sdapi/v1/img2img", {
@@ -42,10 +36,10 @@
                 cfg_scale: 7,
                 sampler_index: "LMS",
                 steps: 50,
-                denoising_strength: .7,
+                denoising_strength: 1,
                 mask_blur: 0,
-                width: rectSize.width * multiplier,
-                height: rectSize.height * multiplier,
+                width: 512,
+                height: 512,
             }),
             headers: {
                 "content-type": "application/json"
@@ -73,22 +67,15 @@
         }
     }
     async function loadImage() {
-        let multiplier = 1;
-        const rectSize:IRenderRect = layers.getRenderRect();
-        if(rectSize.height < 384 || rectSize.height < 384) {
-            multiplier = 2;
-        }
-        if(rectSize.height < 192 || rectSize.height < 192) {
-            multiplier = 4;
-        }
+        
         overlay.hidden = false;
         const res = await fetch(sdconfig.url + "sdapi/v1/txt2img", {
 			method: 'POST',
 			body: JSON.stringify({
                 prompt,
                 batch_size: batchSize,
-                width: rectSize.width * multiplier,
-                height: rectSize.height * multiplier,
+                width: 512,
+                height: 512,
                 cfg_scale: 7,
                 sampler_index: "LMS",
                 steps: 50,
@@ -127,6 +114,7 @@
 <div class="overlay" bind:this={overlay}></div>
 prompt: <input type="text" bind:value={prompt} />
 Batch Size: <input type="number" bind:value={batchSize} />
+Scale: <input type="number" bind:value={scale} />
 Canvas Width: <input type="number" bind:value={canvasWidth} />
 Canvas Height: <input type="number" bind:value={canvasHeight} />
 <span>
@@ -136,7 +124,7 @@ Canvas Height: <input type="number" bind:value={canvasHeight} />
 </span>
 <input type="button" on:click={loadImage} value="Create Image"/>
 <input type="button" on:click={copyImage} value="Copy Image" />
-<LayerManager bind:this={layers} bind:width={canvasWidth} bind:height={canvasHeight} />
+<LayerManager bind:this={layers} bind:width={canvasWidth} bind:height={canvasHeight} bind:scale={scale}/>
 
 <style>    
     .overlay {

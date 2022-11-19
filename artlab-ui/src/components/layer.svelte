@@ -9,7 +9,9 @@
     let renderCanvas:HTMLCanvasElement;
     let ctx: CanvasRenderingContext2D;
     onMount(()=>{
-        ctx = renderCanvas.getContext("2d"); 
+        ctx = renderCanvas.getContext("2d");
+        ctx.canvas.width = width;
+        ctx.canvas.height = height;
     })
     export const getContext = (): CanvasRenderingContext2D => {
         return ctx;

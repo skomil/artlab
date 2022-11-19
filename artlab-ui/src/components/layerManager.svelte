@@ -8,7 +8,10 @@
 	import type { IRenderRect } from '../types/layerManager.type';
     export let width=512;
     export let height=512;
+    export let scale=1;
     let mouseDown = false;
+    let scaledWidth:number = 1;
+    let scaledHeight:number = 1;
     let toolsLayer: ILayer ;
     let renderLayer: ILayer ;
     let backgroundLayer: ILayer ;
@@ -28,10 +31,10 @@
         drawBackground();
         drawBoundsRect();
         addToHistory();
-        
     });
     $: width, refreshView();
     $: height, refreshView();
+    $: scale, refreshView();
 
     function addToHistory(): void {
         imageHistory.splice(currentlyViewingHistory + imageHistory.length);
@@ -42,17 +45,26 @@
         imageHistoryDisplay = imageHistory.length;
     }
     export const copySelectionToImage = (): string => {
-        copyCanvas.width = renderBoundsWidth;
-        copyCanvas.height = renderBoundsHeight;
-        const img = renderLayer.createImageWithoutMask(renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
+        copyCanvas.width = renderBoundsWidth * scale;
+        copyCanvas.height = renderBoundsHeight * scale;
+        const img = renderLayer.createImageWithoutMask(
+            renderBoundsX * scale,
+            renderBoundsY * scale,
+            renderBoundsWidth * scale,
+            renderBoundsHeight * scale);
         copyCanvas.getContext("2d").putImageData(img,0,0);
         return copyCanvas.toDataURL();
     };
     export const copyMaskToImage = (): string => {
-        copyCanvas.width = renderBoundsWidth;
-        copyCanvas.height = renderBoundsHeight;
-        const img = renderLayer.createMask(renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
+        copyCanvas.width = renderBoundsWidth * scale;
+        copyCanvas.height = renderBoundsHeight * scale;
+        const img = renderLayer.createMask(
+            renderBoundsX * scale,
+            renderBoundsY * scale, 
+            renderBoundsWidth* scale,
+            renderBoundsHeight * scale);
         copyCanvas.getContext("2d").putImageData(img,0,0);
+        //renderLayer.getContext().putImageData(img, renderBoundsX * scale, renderBoundsY* scale);
         return copyCanvas.toDataURL();
     };
     export const addImage = (image:HTMLImageElement, currentHistory: boolean) => {
@@ -64,12 +76,12 @@
     };
     function setMousedown(event: MouseEvent) {
         mouseDown = true;
-        if (event.offsetX > renderBoundsX - 12 && event.offsetX < renderBoundsX + 24 &&
-            event.offsetY > renderBoundsY - 12 && event.offsetY < renderBoundsY + 24
+        if (event.offsetX * (1 / scale) > renderBoundsX - 12 && event.offsetX * (1 / scale) < renderBoundsX + 24 &&
+            event.offsetY * (1 / scale) > renderBoundsY - 12 && event.offsetY * (1 / scale) < renderBoundsY + 24
         ) {
             activeTool="MOVE_BOUNDS";
-        } else if (event.offsetX > renderBoundsX + renderBoundsWidth - 12 && event.offsetX < renderBoundsX + renderBoundsWidth + 24 &&
-            event.offsetY > renderBoundsY + renderBoundsHeight - 12 && event.offsetY < renderBoundsY + renderBoundsHeight + 24
+        } else if (event.offsetX * (1 / scale) > renderBoundsX + renderBoundsWidth - 12 && event.offsetX * (1 / scale) < renderBoundsX + renderBoundsWidth + 24 &&
+            event.offsetY * (1 / scale) > renderBoundsY + renderBoundsHeight - 12 && event.offsetY * (1 / scale) < renderBoundsY + renderBoundsHeight + 24
         ) {
             activeTool="RESIZE_BOUNDS";
         }
@@ -83,18 +95,18 @@
     function onMouseMove(event: MouseEvent) {
         if(mouseDown) {
             if (activeTool === "RESIZE_BOUNDS") {
-                if (event.offsetX - renderBoundsX > minRenderBounds && (event.offsetX - renderBoundsX) % 64 === 0) {
-                    renderBoundsWidth = event.offsetX - renderBoundsX;
-                } 
-                if (event.offsetY - renderBoundsY > minRenderBounds && (event.offsetY - renderBoundsY) % 64 === 0) {
-                    renderBoundsHeight = event.offsetY - renderBoundsY;
-                }
+                //if (event.offsetX - renderBoundsX > minRenderBounds && (event.offsetX - renderBoundsX) % 64 === 0) {
+                    renderBoundsWidth = (event.offsetX - renderBoundsX) * (1 / scale);
+                //} 
+                //if (event.offsetY - renderBoundsY > minRenderBounds && (event.offsetY - renderBoundsY) % 64 === 0) {
+                    renderBoundsHeight = (event.offsetX - renderBoundsX) * (1 / scale);
+                //}
             } else if (activeTool === "MOVE_BOUNDS") {
                 //if (renderBoundsX + renderBoundsWidth < width) {
-                    renderBoundsX = event.offsetX;
+                    renderBoundsX = event.offsetX * (1 / scale);
                 //}
                 //if (renderBoundsY + renderBoundsHeight < height) {
-                    renderBoundsY = event.offsetY;
+                    renderBoundsY = event.offsetY * (1 / scale);
                 //}
             }
             
@@ -110,8 +122,11 @@
         }
     }
     function drawBackground() {
+        
+        scaledHeight = scale*height;
+        scaledWidth = scale*width;
         backgroundImage = new Image();
-        backgroundImage.src = "/checkerboard.png";
+        backgroundImage.src = "/checkerboard.png?key="+ Math.random() * 100;
         backgroundImage.onload = () => {
             const pattern = backgroundLayer.getContext().createPattern(backgroundImage, "repeat");
             backgroundLayer.getContext().fillStyle = pattern;
@@ -120,11 +135,15 @@
             toolsLayer.getContext().setLineDash([10,3]);
         
         };
+        backgroundLayer.getContext().scale(scale, scale);
+        renderLayer.getContext().scale(scale, scale);
+        toolsLayer.getContext().scale(scale, scale);
         console.log("refresh");
         
     }
     function drawBoundsRect() {
         toolsLayer.getContext().lineWidth = 3;
+        //toolsLayer.getContext().scale(scale, scale);
         toolsLayer.getContext().setLineDash([10,3]);
         toolsLayer.getContext().clearRect(0,0,width, height);
         toolsLayer.getContext().strokeRect(
@@ -152,8 +171,9 @@
             renderLayer.getContext().putImageData(imageHistory[imageHistory.length + currentlyViewingHistory - 1], 0, 0);
         }
     }
+    
 </script>
-<div style="border: 1px solid #cccccc; position: relative; width: {width}px; height:{height}px;" 
+<div style="border: 1px solid #cccccc; position: relative; width: {scaledWidth}px; height:{scaledHeight}px;" 
     on:mousedown={setMousedown}
     on:mouseup={setMouseUp}
     on:mousemove={onMouseMove}
