@@ -44,6 +44,12 @@
         }
         imageHistoryDisplay = imageHistory.length;
     }
+    function replaceHistory(): void {
+
+        if(renderLayer != null) {
+            imageHistory[imageHistory.length -1] = renderLayer.getContext().getImageData(0, 0, width, height);
+        }
+    }
     export const copySelectionToImage = (): string => {
         copyCanvas.width = renderBoundsWidth * scale;
         copyCanvas.height = renderBoundsHeight * scale;
@@ -68,8 +74,17 @@
         return copyCanvas.toDataURL();
     };
     export const addImage = (image:HTMLImageElement, currentHistory: boolean) => {
-        renderLayer.getContext().drawImage(image, renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
-        addToHistory();
+        
+        if (currentHistory) {
+            if(currentlyViewingHistory === 0) {
+                renderLayer.getContext().drawImage(image, renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
+                replaceHistory();
+            }
+        } else {
+            renderLayer.getContext().drawImage(image, renderBoundsX, renderBoundsY, renderBoundsWidth, renderBoundsHeight);
+            addToHistory();
+        }
+        
     };
     export const getRenderRect = (): IRenderRect => {
         return {width: renderBoundsWidth, height: renderBoundsHeight}
@@ -122,7 +137,9 @@
         }
     }
     function drawBackground() {
-        
+        backgroundLayer.onResize();
+        toolsLayer.onResize();
+        renderLayer.onResize();
         scaledHeight = scale*height;
         scaledWidth = scale*width;
         backgroundImage = new Image();
@@ -173,7 +190,7 @@
     }
     
 </script>
-<div style="border: 1px solid #cccccc; position: relative; width: {scaledWidth}px; height:{scaledHeight}px;" 
+<div style="border: 1px solid #cccccc; position: relative; width: {scaledWidth}px; height:{scaledHeight}px; overflow: hidden;" 
     on:mousedown={setMousedown}
     on:mouseup={setMouseUp}
     on:mousemove={onMouseMove}

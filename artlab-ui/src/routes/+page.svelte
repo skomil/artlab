@@ -8,7 +8,7 @@
     let layers: ILayerManager;
     let canvasWidth: number = 1024;
     let canvasHeight: number = 512;
-    let scale: number = 1;
+    let scale: number = .5;
     
     let sdconfig = {
         url: 'http://192.168.1.31:7861/'

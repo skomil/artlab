@@ -5,6 +5,7 @@ export type ILayerManager = {
     copyMaskToImage(): string;
     width: number;
     height: number;
+    scale: number;
 }
 export type IRenderRect = {
     width: number;
