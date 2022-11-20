@@ -51,24 +51,24 @@
         }
     }
     export const copySelectionToImage = (): string => {
-        copyCanvas.width = renderBoundsWidth * scale;
-        copyCanvas.height = renderBoundsHeight * scale;
+        copyCanvas.width = renderBoundsWidth;
+        copyCanvas.height = renderBoundsHeight;
         const img = renderLayer.createImageWithoutMask(
-            renderBoundsX * scale,
-            renderBoundsY * scale,
-            renderBoundsWidth * scale,
-            renderBoundsHeight * scale);
+            renderBoundsX,
+            renderBoundsY,
+            renderBoundsWidth,
+            renderBoundsHeight);
         copyCanvas.getContext("2d").putImageData(img,0,0);
         return copyCanvas.toDataURL();
     };
     export const copyMaskToImage = (): string => {
-        copyCanvas.width = renderBoundsWidth * scale;
-        copyCanvas.height = renderBoundsHeight * scale;
+        copyCanvas.width = renderBoundsWidth;
+        copyCanvas.height = renderBoundsHeight;
         const img = renderLayer.createMask(
-            renderBoundsX * scale,
-            renderBoundsY * scale, 
-            renderBoundsWidth* scale,
-            renderBoundsHeight * scale);
+            renderBoundsX,
+            renderBoundsY, 
+            renderBoundsWidth,
+            renderBoundsHeight);
         copyCanvas.getContext("2d").putImageData(img,0,0);
         //renderLayer.getContext().putImageData(img, renderBoundsX * scale, renderBoundsY* scale);
         return copyCanvas.toDataURL();
@@ -111,10 +111,10 @@
         if(mouseDown) {
             if (activeTool === "RESIZE_BOUNDS") {
                 //if (event.offsetX - renderBoundsX > minRenderBounds && (event.offsetX - renderBoundsX) % 64 === 0) {
-                    renderBoundsWidth = (event.offsetX - renderBoundsX) * (1 / scale);
+                    renderBoundsWidth = (event.offsetX * (1 / scale)) - renderBoundsX;
                 //} 
                 //if (event.offsetY - renderBoundsY > minRenderBounds && (event.offsetY - renderBoundsY) % 64 === 0) {
-                    renderBoundsHeight = (event.offsetX - renderBoundsX) * (1 / scale);
+                    renderBoundsHeight = (event.offsetX  * (1 / scale)) - renderBoundsX;
                 //}
             } else if (activeTool === "MOVE_BOUNDS") {
                 //if (renderBoundsX + renderBoundsWidth < width) {
@@ -137,9 +137,9 @@
         }
     }
     function drawBackground() {
-        backgroundLayer.onResize();
-        toolsLayer.onResize();
-        renderLayer.onResize();
+        //backgroundLayer.onResize();
+        //toolsLayer.onResize();
+        //renderLayer.onResize();
         scaledHeight = scale*height;
         scaledWidth = scale*width;
         backgroundImage = new Image();
@@ -152,9 +152,10 @@
             toolsLayer.getContext().setLineDash([10,3]);
         
         };
-        backgroundLayer.getContext().scale(scale, scale);
-        renderLayer.getContext().scale(scale, scale);
-        toolsLayer.getContext().scale(scale, scale);
+        
+        if (imageHistory.length > 1) {
+            renderLayer.getContext().putImageData(imageHistory[imageHistory.length -1], 0, 0);
+        }
         console.log("refresh");
         
     }
@@ -188,9 +189,13 @@
             renderLayer.getContext().putImageData(imageHistory[imageHistory.length + currentlyViewingHistory - 1], 0, 0);
         }
     }
+    function downloadImage() {
+        let downloadUrl = renderLayer.downloadLink();
+        window.open(downloadUrl);
+    }
     
 </script>
-<div style="border: 1px solid #cccccc; position: relative; width: {scaledWidth}px; height:{scaledHeight}px; overflow: hidden;" 
+<div style="border: 1px solid #cccccc; position: relative; width: {width}px; height:{height}px; zoom: {scale};" 
     on:mousedown={setMousedown}
     on:mouseup={setMouseUp}
     on:mousemove={onMouseMove}
@@ -205,4 +210,5 @@
 <div>
     imageWidth: {renderBoundsWidth} imageHeight: {renderBoundsHeight}
     <input type="button" value="<-hist" on:click={tryBackHistory}/> viewing {imageHistoryDisplay + currentlyViewingHistory} of {imageHistoryDisplay} images in history <input type="button" value="hist->" on:click={tryForwardHistory}/>
+    <input type="button" value="Download" on:click={downloadImage}/>
 </div>

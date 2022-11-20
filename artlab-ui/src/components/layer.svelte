@@ -10,11 +10,11 @@
     let ctx: CanvasRenderingContext2D;
     onMount(()=>{
         ctx = renderCanvas.getContext("2d");
-        onResize();
     })
-    export const onResize = (): void => {
-        renderCanvas.width = width;
-        renderCanvas.height = height;
+    export const downloadLink = (): string => {
+        let url = renderCanvas.toDataURL('image/png');
+        let link = url.replace(/^data:image\/png/,'data:application/octet-stream');
+        return link;
     };
     export const getContext = (): CanvasRenderingContext2D => {
         return ctx;
