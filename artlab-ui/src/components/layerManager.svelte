@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
     import Layer from "./layer.svelte";
 	import type { ILayer } from "../types/layer.type";
-	import type { IRenderRect } from '../types/layerManager.type';
+	import type { IRenderRect } from '../types/ImagePad';
     export let width=512;
     export let height=512;
     export let scale=1;
@@ -18,14 +18,14 @@
     const minRenderBounds = 50;
     let renderBoundsX = 100;
     let renderBoundsY = 100;
-    let renderBoundsWidth = 128;
-    let renderBoundsHeight = 128;
+    export let renderBoundsWidth = 128;
+    export let renderBoundsHeight = 128;
     let activeTool = "NONE";
     let backgroundImage: HTMLImageElement;
     let copyCanvas: HTMLCanvasElement;
     let imageHistory: ImageData[];
-    let currentlyViewingHistory = 0;
-    let imageHistoryDisplay = 0;
+    export let currentlyViewingHistory = 0;
+    export let imageHistoryDisplay = 0;
     imageHistory = [];
     onMount(()=>{
         drawBackground();
@@ -137,9 +137,6 @@
         }
     }
     function drawBackground() {
-        //backgroundLayer.onResize();
-        //toolsLayer.onResize();
-        //renderLayer.onResize();
         scaledHeight = scale*height;
         scaledWidth = scale*width;
         backgroundImage = new Image();
@@ -177,19 +174,19 @@
         toolsLayer.getContext().fillRect(renderBoundsX + renderBoundsWidth - 12, renderBoundsY + renderBoundsHeight - 12, 24, 24);
         
     }
-    function tryBackHistory() {
+    export function tryBackHistory() {
         if (imageHistory.length + currentlyViewingHistory > 1) {
             currentlyViewingHistory --;
             renderLayer.getContext().putImageData(imageHistory[imageHistory.length + currentlyViewingHistory - 1], 0, 0);
         }
     }
-    function tryForwardHistory() {
+    export function tryForwardHistory() {
         if (imageHistory.length + currentlyViewingHistory < imageHistory.length) {
             currentlyViewingHistory ++;
             renderLayer.getContext().putImageData(imageHistory[imageHistory.length + currentlyViewingHistory - 1], 0, 0);
         }
     }
-    function downloadImage() {
+    export function downloadImage() {
         let downloadUrl = renderLayer.downloadLink();
         window.open(downloadUrl);
     }
@@ -206,9 +203,4 @@
     <Layer id="backgroundLayer" bind:width={width} bind:height={height} bind:this={backgroundLayer} index=0/>
     <canvas id="copyCanvas" bind:this={copyCanvas} />
     
-</div>
-<div>
-    imageWidth: {renderBoundsWidth} imageHeight: {renderBoundsHeight}
-    <input type="button" value="<-hist" on:click={tryBackHistory}/> viewing {imageHistoryDisplay + currentlyViewingHistory} of {imageHistoryDisplay} images in history <input type="button" value="hist->" on:click={tryForwardHistory}/>
-    <input type="button" value="Download" on:click={downloadImage}/>
 </div>

@@ -1,20 +1,19 @@
 
 <script lang="ts">
-    import LayerManager from '../components/layerManager.svelte';
     import { onMount } from 'svelte';
-	import type { ILayerManager, IRenderRect } from '../types/layerManager.type';
+	import type { IImagePad } from '../types/ImagePad';
+	import ImagePad from '../components/imagePad.svelte';
     let prompt: string = '';
     let batchSize: number = 1;
-    let layers: ILayerManager;
+    let layers: IImagePad;
     let canvasWidth: number = 1024;
     let canvasHeight: number = 512;
-    let scale: number = .5;
+    let scale: number = 1;
     
     let sdconfig = {
         url: 'http://192.168.1.31:7861/'
     };
-    let resultImages: HTMLImageElement[] = [];
-    let resultSelection: number = 0;
+    
    
     let overlay:HTMLBodyElement;
     onMount(()=>{
@@ -22,9 +21,7 @@
         
     })
     async function copyImage() {
-        
         overlay.hidden = false;
-        //console.log('%c ', 'font-size:400px; background:url('+ layers.copySelectionToImage +') no-repeat;');
         const res = await fetch(sdconfig.url + "sdapi/v1/img2img", {
 			method: 'POST',
 			body: JSON.stringify({
@@ -45,26 +42,12 @@
                 "content-type": "application/json"
             }
 		});
-        resultSelection = 0;
         const txt2img = await res.json();
         //TODO 422 error
         overlay.hidden = true;
         console.log(txt2img);
-        await populateImageData(txt2img);
-        layers.addImage(resultImages[resultSelection], false);
+        layers.addImages(txt2img.images);
         console.log("outpaint");
-    }
-    function incrementCurrentBatch() {
-        if (resultSelection + 1 < resultImages.length) {
-            resultSelection++;
-            layers.addImage(resultImages[resultSelection], true);
-        }
-    }
-    function decrementCurrentBatch() {
-        if (resultSelection > 0) {
-            resultSelection--;
-            layers.addImage(resultImages[resultSelection], true);
-        }
     }
     async function loadImage() {
         
@@ -87,28 +70,13 @@
                 "content-type": "application/json"
             }
 		});
-        resultSelection = 0;
         const txt2img = await res.json();
         //TODO 422 error
         overlay.hidden = true;
         console.log(txt2img);
-        await populateImageData(txt2img);
-        layers.addImage(resultImages[resultSelection]);
+        layers.addImages(txt2img.images);
         console.log("draw");   
     }
-
-    async function populateImageData(txt2img: any) {
-        let deferredImages = txt2img.images.map(async img => {
-            const image = new Image();
-            await new Promise(r => {
-                image.onload=r;
-                image.src="data:image/png;base64," + img;
-            });
-            return image;
-        });
-        await Promise.all(deferredImages).then(v => resultImages = v);
-    }
-   
     
 </script>
 <div class="overlay" bind:this={overlay}></div>
@@ -117,15 +85,9 @@ Batch Size: <input type="number" bind:value={batchSize} />
 Scale: <input type="number" bind:value={scale} />
 Canvas Width: <input type="number" bind:value={canvasWidth} />
 Canvas Height: <input type="number" bind:value={canvasHeight} />
-<span>
-    <input type="button" value="<-" on:click={decrementCurrentBatch}/>
-    {resultSelection + 1} of {resultImages.length} Batch Images
-    <input type="button" value="->" on:click={incrementCurrentBatch}/>
-</span>
 <input type="button" on:click={loadImage} value="Create Image"/>
 <input type="button" on:click={copyImage} value="Copy Image" />
-<LayerManager bind:this={layers} bind:width={canvasWidth} bind:height={canvasHeight} bind:scale={scale}/>
-
+<ImagePad bind:this={layers} bind:height={canvasHeight} bind:width={canvasWidth} bind:scale={scale} />
 <style>    
     .overlay {
         position: absolute;

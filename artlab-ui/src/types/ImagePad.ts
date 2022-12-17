@@ -1,5 +1,6 @@
-export type ILayerManager = {
-    addImage(image:HTMLImageElement, currentHistory: boolean): void;
+export type IImagePad = {
+    //addImage(image:HTMLImageElement, currentHistory: boolean): void;
+    addImages(images: any): Promise<any>;
     getRenderRect(): IRenderRect;
     copySelectionToImage(): string;
     copyMaskToImage(): string;
